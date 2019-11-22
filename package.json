@@ -1,0 +1,32 @@
+{
+  "name": "juejin-pdf-image-puppeteer",
+  "version": "1.0.0",
+  "description": "download juejin articles with lazyload images to pdf.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forijk/juejin-pdf-image-puppeteer.git"
+  },
+  "keywords": [
+    "download",
+    "juejin",
+    "articles",
+    "lazyload",
+    "images",
+    "pdf"
+  ],
+  "author": "forjasonyu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/forijk/juejin-pdf-image-puppeteer/issues"
+  },
+  "homepage": "https://github.com/forijk/juejin-pdf-image-puppeteer#readme",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "progress": "^2.0.3",
+    "puppeteer": "^2.0.0"
+  }
+}
