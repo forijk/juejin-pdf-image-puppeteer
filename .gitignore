@@ -2,7 +2,8 @@
 node_modules/
 npm-debug.log
 yarn-error.log
-
+books/
+books_back/
 # Editor directories and files
 .idea
 *.suo

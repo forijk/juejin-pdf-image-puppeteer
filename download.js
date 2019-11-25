@@ -11,6 +11,7 @@ const puppeteer = require('puppeteer');
 const mkdirp = require('mkdirp');
 const axios = require('axios');
 const ProgressBar = require('progress');
+const fs = require('fs');
 
 const BASE_URL = 'https://juejin.im';
 
@@ -62,10 +63,28 @@ const printJuejinBooks = async (userName, password, sourceUrl, isLazyload = true
       console.log('登录失败: ', err);
       return
     })
-    console.log('进入【我的收藏集】');
     await page.goto(sourceUrl);
-
+    console.log('进入【我的收藏集】');
     await page.waitForSelector('.collection-view');
+
+    const articleCount = await page.$eval('.collection-view', ele => {
+      const count = ele.querySelector('.left').childNodes;
+      const articleCount = Array.prototype.slice.call(count);
+      return parseInt(articleCount[1].innerHTML);
+    });
+    console.log('正在读取收藏集列表...');
+
+    for (let i = 1; i <= articleCount; i++) {
+      await page.evaluate((i, viewportHeight) => {
+        return Promise.resolve(window.scrollTo(0, i * viewportHeight));
+      }, i, viewport.height).catch(err => {
+        console.log(err);
+      });
+      await page.waitFor(500).catch(err => {
+        console.log(err);
+      });
+    }
+
     const books = await page.$eval('.collection-view', element => {
       const booksHTMLCollection = element.querySelectorAll('.content-box');
       const booksElementArray = Array.prototype.slice.call(booksHTMLCollection);
@@ -83,11 +102,24 @@ const printJuejinBooks = async (userName, password, sourceUrl, isLazyload = true
       console.log('  ', index + 1 + '.' + item.title);
     });
 
+    let str = JSON.stringify(books, null, '\t')
+
+    fs.writeFile(`${saveDir}/books.text`, str, 'utf8', function (err) {
+      if (err)
+        console.log('写文件出错了：' + err);
+      else {
+        console.log('已保存收藏集列表');
+        console.log('开始下载全部 PDF 文件');
+      }
+    })
+
     for (let article of books) {
       const articlePage = await browser.newPage();
       articlePage.setViewport(viewport);
 
-      await articlePage.goto(`${BASE_URL}${article.href}`);
+      await articlePage.goto(`${BASE_URL}${article.href}`, {
+        timeout: 0
+      });
 
       if (isLazyload) {
         console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
@@ -139,14 +171,21 @@ const printJuejinBooks = async (userName, password, sourceUrl, isLazyload = true
       }
       await articlePage.waitForSelector('.main-container');
       await articlePage.$eval('body', body => {
-        body.querySelector('.main-header-box').style.display = 'none';
+        if (body.querySelector('.main-header-box'))
+          body.querySelector('.main-header-box').style.display = 'none';
         // 隐藏评论列表
+        // if (body.querySelector('.comment-list-box'))
         // body.querySelector('.comment-list-box').style.display = 'none';
-        body.querySelector('.recommended-area').style.display = 'none';
-        body.querySelector('.tag-list-box').style.display = 'none';
-        body.querySelector('.article-banner').style.display = 'none';
-        body.querySelector('.meiqia-btn').style.display = 'none';
-        body.querySelector('.footer-author-block').style.display = 'none';
+        if (body.querySelector('.recommended-area'))
+          body.querySelector('.recommended-area').style.display = 'none';
+        if (body.querySelector('.tag-list-box'))
+          body.querySelector('.tag-list-box').style.display = 'none';
+        if (body.querySelector('.article-banner'))
+          body.querySelector('.article-banner').style.display = 'none';
+        if (body.querySelector('.meiqia-btn'))
+          body.querySelector('.meiqia-btn').style.display = 'none';
+        if (body.querySelector('.footer-author-block'))
+          body.querySelector('.footer-author-block').style.display = 'none';
         Promise.resolve();
       });
 
