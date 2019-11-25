@@ -102,6 +102,8 @@ const printJuejinBooks = async (userName, password, sourceUrl, isLazyload = true
       console.log('  ', index + 1 + '.' + item.title);
     });
 
+    mkdirp.sync(saveDir);
+
     let str = JSON.stringify(books, null, '\t')
 
     fs.writeFile(`${saveDir}/books.text`, str, 'utf8', function (err) {
@@ -191,7 +193,6 @@ const printJuejinBooks = async (userName, password, sourceUrl, isLazyload = true
 
       const fileName = `${article.title.replace(/\//g, '、')}.pdf`;
       const filePath = `${saveDir}/${fileName}`;
-      mkdirp.sync(saveDir);
 
       console.log('开始转换为 PDF 文件...');
       await page.emulateMedia('screen');
